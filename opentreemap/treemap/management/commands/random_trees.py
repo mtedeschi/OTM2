@@ -7,11 +7,12 @@ from optparse import make_option
 import random
 import math
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 
 from treemap.models import Plot, Tree, Species
-
 from treemap.management.util import InstanceDataCommand
+
+from map_features.models import RainGardenLA
 
 
 class Command(InstanceDataCommand):
@@ -27,8 +28,14 @@ class Command(InstanceDataCommand):
                     action='store',
                     type='int',
                     dest='n',
-                    default=100000,
+                    default=0,
                     help='Number of trees to create'),
+        make_option('-N', '--number-of-resources',
+                    action='store',
+                    type='int',
+                    dest='nresources',
+                    default=0,
+                    help='Number of resources to create'),
         make_option('-p', '--prob-of-tree',
                     action='store',
                     type='int',
@@ -58,7 +65,11 @@ class Command(InstanceDataCommand):
         species_qs = instance.scope_model(Species)
 
         n = options['n']
-        self.stdout.write("Will create %s plots" % n)
+        nresources = options['nresources']
+        if n > 0:
+            self.stdout.write("Will create %s plots" % n)
+        if nresources > 0:
+            self.stdout.write("Will create %s resources" % nresources)
 
         get_prob = lambda option: float(min(100, max(0, option))) / 100.0
         tree_prob = get_prob(options['ptree'])
@@ -69,18 +80,21 @@ class Command(InstanceDataCommand):
         center_x = instance.center.x
         center_y = instance.center.y
 
-        ct = 0
-        cp = 0
-        for i in xrange(0, n):
-            mktree = random.random() < tree_prob
+        def random_point():
             radius = random.gauss(0.0, max_radius)
             theta = random.random() * 2.0 * math.pi
-
             x = math.cos(theta) * radius + center_x
             y = math.sin(theta) * radius + center_y
+            return Point(x, y)
+
+        ct = 0
+        cp = 0
+        cr = 0
+        for i in xrange(0, n):
+            mktree = random.random() < tree_prob
 
             plot = Plot(instance=instance,
-                        geom=Point(x, y))
+                        geom=random_point())
 
             plot.save_with_user(user)
             cp += 1
@@ -105,4 +119,16 @@ class Command(InstanceDataCommand):
                 tree.save_with_user(user)
                 ct += 1
 
-        self.stdout.write("Created %s trees and %s plots" % (ct, cp))
+        for i in xrange(0, nresources):
+            box = MultiPolygon(Polygon(
+                ((0, 0), (100, 0), (100, 100), (0, 100), (0, 0))))
+            garden = RainGardenLA(instance=instance, geom=random_point(),
+                                  roof_geometry=box)
+
+            garden.save_with_user(user)
+            cr += 1
+
+        if n > 0:
+            self.stdout.write("Created %s trees and %s plots" % (ct, cp))
+        if nresources > 0:
+            self.stdout.write("Created %s rain gardens" % cr)

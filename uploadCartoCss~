@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ADDR=localhost
+
+STYLE=`cat opentreemap/treemap/assets/carto/mapfeature.mms`
+THING='mapfeature'
+
+# note that 99 and instance id are arbitrary and ignored but required
+URL="http://$ADDR/tile/99/database/otm/table/treemap_$THING/style?instance_id=3"
+
+curl -X POST -d "style=$STYLE" $URL
