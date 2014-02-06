@@ -486,7 +486,8 @@ def update_map_feature(request_dict, user, feature):
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
-                model_id, page=0, page_size=20, exclude_pending=True):
+                model_id, page=0, page_size=20, exclude_pending=True,
+                should_count=False):
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
@@ -552,6 +553,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     if exclude_pending:
         audits = audits.exclude(requires_auth=True, ref__isnull=True)
 
+    total_count = audits.count() if should_count else 0
     audits = audits[start_pos:end_pos]
 
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
@@ -565,6 +567,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
         prev_page = "?" + urllib.urlencode(query_vars)
 
     return {'audits': audits,
+            'total_count': total_count,
             'next_page': next_page,
             'prev_page': prev_page}
 
@@ -874,7 +877,7 @@ def user(request, username):
     query_vars = {'instance_id': instance_id} if instance_id else {}
 
     audit_dict = _get_audits(request.user, instance, query_vars,
-                             user, ['Plot', 'Tree'], 0)
+                             user, ['Plot', 'Tree'], 0, should_count=True)
 
     reputation = user.get_reputation(instance) if instance else None
 
@@ -890,6 +893,7 @@ def user(request, username):
     return {'user': user,
             'reputation': reputation,
             'instance_id': instance_id,
+            'total_count': audit_dict['total_count'],
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page'],
             'public_fields': public_fields,
