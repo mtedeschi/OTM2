@@ -88,10 +88,19 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
-def _get_map_feature_or_404(feature_id, instance, type):
-    MapFeatureSubclass = MapFeature.get_subclass(type)
-    InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
-    return get_object_or_404(InstanceMapFeature, pk=feature_id)
+def _get_map_feature_or_404(feature_id, instance, type=None):
+    if type:
+        MapFeatureSubclass = MapFeature.get_subclass(type)
+        InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
+        return get_object_or_404(InstanceMapFeature, pk=feature_id)
+
+    else:
+        InstanceMapFeature = instance.scope_model(MapFeature)
+        feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
+
+        # Use feature_type to get the appropriate object, e.g. MapFeature.plot
+        feature = getattr(feature, feature.feature_type.lower())
+        return feature
 
 
 def add_tree_photo(request, instance, feature_id, tree_id=None):
