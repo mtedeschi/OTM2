@@ -48,7 +48,7 @@ from treemap.ecobackend import BAD_CODE_PAIR
 from opentreemap.util import json_from_request, route
 
 
-def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
+def _map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     """
     Compute a unique hash for a given plot or tree
 
@@ -58,8 +58,8 @@ def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
     tree_id as an argument
     """
 
-    instance_plots = instance.scope_model(Plot)
-    base = get_object_or_404(instance_plots, pk=feature_id).hash
+    InstanceMapFeature = instance.scope_model(MapFeature)
+    base = get_object_or_404(InstanceMapFeature, pk=feature_id).hash
 
     if request.user:
         pk = request.user.pk or ''
@@ -98,7 +98,7 @@ def _get_map_feature_or_404(feature_id, instance, type=None):
         InstanceMapFeature = instance.scope_model(MapFeature)
         feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
 
-        # Use feature_type to get the appropriate object, e.g. MapFeature.plot
+        # Use feature_type to get the appropriate object, e.g. feature.plot
         feature = getattr(feature, feature.feature_type.lower())
         return feature
 
@@ -193,6 +193,22 @@ def create_user(*args, **kwargs):
     return user
 
 
+def map_feature_popup(request, instance, feature_id):
+    feature = _get_map_feature_or_404(feature_id, instance)
+    context = _context_dict_for_map_feature(instance, feature)
+
+    if feature.is_plot:
+        tree = feature.current_tree()
+        if tree and tree.species:
+            context['title'] = tree.species
+        else:
+            context['title'] = trans("Missing Species")
+    else:
+        context['title'] = feature.display_name
+
+    return context
+
+
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
     plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
 
@@ -218,13 +234,11 @@ def _context_dict_for_map_feature(instance, feature):
         raise Exception("Invalid instance does not match plot")
 
     feature.instance = instance  # save a DB lookup
-    context = {}
-    return context
 
-
-def context_dict_for_non_plot_feature(instance, feature):
-    context = _context_dict_for_map_feature(instance, feature)
-    context['feature'] = feature
+    context = {
+        'feature': feature,
+        'feature_type': feature.feature_type,
+    }
     return context
 
 
@@ -1199,14 +1213,14 @@ delete_map_feature_view = login_or_401(
         instance_request(
             creates_instance_user(delete_map_feature))))
 
-get_plot_eco_view = instance_request(etag(_plot_hash)(
+get_plot_eco_view = instance_request(etag(_map_feature_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
-get_plot_sidebar_view = instance_request(etag(_plot_hash)(
+get_plot_sidebar_view = instance_request(etag(_map_feature_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
 
-plot_popup_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/partials/plot_popup.html', plot_detail)))
+plot_popup_view = instance_request(etag(_map_feature_hash)(
+    render_template('treemap/partials/plot_popup.html', map_feature_popup)))
 
 plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))
