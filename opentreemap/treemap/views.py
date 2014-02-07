@@ -1219,8 +1219,9 @@ get_plot_eco_view = instance_request(etag(_map_feature_hash)(
 get_plot_sidebar_view = instance_request(etag(_map_feature_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
 
-plot_popup_view = instance_request(etag(_map_feature_hash)(
-    render_template('treemap/partials/plot_popup.html', map_feature_popup)))
+map_feature_popup_view = instance_request(etag(_map_feature_hash)(
+    render_template('treemap/partials/map_feature_popup.html',
+                    map_feature_popup)))
 
 plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))
