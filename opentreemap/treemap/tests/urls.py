@@ -189,8 +189,9 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_plot_detail(self):
         plot = self.make_plot()
-        self.assert_template(
-            self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_detail.html')
+        url = self.prefix + 'plots/%s/' % plot.id
+        self.assert_template(url, 'treemap/plot_detail.html')
+        self.assert_template(url, 'treemap/map_feature_detail.html')
 
     def test_plot_detail_invalid(self):
         self.assert_404(self.prefix + 'plots/999/')
