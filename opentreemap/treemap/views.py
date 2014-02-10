@@ -210,34 +210,51 @@ def map_feature_popup(request, instance, feature_id):
 
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
-    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
+    feature = _get_map_feature_or_404(feature_id, instance)
 
-    if hasattr(request, 'instance_supports_ecobenefits'):
-        supports_eco = request.instance_supports_ecobenefits
+    if feature.is_plot:
+        if hasattr(request, 'instance_supports_ecobenefits'):
+            supports_eco = request.instance_supports_ecobenefits
+        else:
+            supports_eco = instance.has_itree_region()
+
+        context = context_dict_for_plot(
+            instance,
+            feature,
+            tree_id,
+            user=request.user,
+            supports_eco=supports_eco)
+
+        context['editmode'] = edit
+
     else:
-        supports_eco = instance.has_itree_region()
-
-    context = context_dict_for_plot(
-        instance,
-        plot,
-        tree_id,
-        user=request.user,
-        supports_eco=supports_eco)
-
-    context['editmode'] = edit
+        context = _context_dict_for_map_feature(instance, feature)
 
     return context
 
 
 def _context_dict_for_map_feature(instance, feature):
     if instance.pk != feature.instance_id:
-        raise Exception("Invalid instance does not match plot")
+        raise Exception("Invalid instance, does not match map feature")
 
     feature.instance = instance  # save a DB lookup
+
+    if feature.is_plot:
+        tree = feature.current_tree()
+        if tree:
+            if tree.species:
+                title = tree.species
+            else:
+                title = trans("Missing Species")
+        else:
+            title = trans("Empty Planting Site")
+    else:
+        title = feature.display_name
 
     context = {
         'feature': feature,
         'feature_type': feature.feature_type,
+        'title': title,
     }
     return context
 
@@ -1190,8 +1207,11 @@ index_view = instance_request(index)
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
+# get_map_feature_detail_view = instance_request(
+#     render_template('treemap/plot_detail.html', plot_detail))
+
 get_map_feature_detail_view = instance_request(
-    render_template('treemap/plot_detail.html', plot_detail))
+    render_template('map_features/RainGardenLA_detail.html', plot_detail))
 
 edit_map_feature_detail_view = login_required(
     instance_request(

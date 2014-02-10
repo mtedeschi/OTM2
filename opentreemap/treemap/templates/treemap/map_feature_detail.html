@@ -4,8 +4,6 @@
 {% load i18n %}
 {% load l10n %}
 
-{% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
-
 {% block head_extra %}
 {% endblock head_extra %}
 
@@ -20,6 +18,7 @@
 <div class="container contained tree-details">
   <div class="row-fluid">
     <div class="span3">
+{% if feature.is_plot %}
       <div class="photo-container">
         <div id="tree-photo-carousel" class="carousel slide" data-interval="">
             {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
@@ -57,13 +56,14 @@
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
       </div>
+{% endif %}
     </div>
 
     <div class="span9">
       <div class="detail-header">
         <button class="btn share hidden">Share</button>
-        <h2 class="common-name">{{ tree.species.common_name }} <i id="favorite-star" class="icon-star-empty hidden"></i></h2>
-        <h4 class="address">{{ plot.address_full }}</h4>
+        <h2 class="common-name">{{ title }} <i id="favorite-star" class="icon-star-empty hidden"></i></h2>
+        <h4 class="address">{{ feature.address_full }}</h4>
       </div>
       <div class="row-fluid">
         <div class="span8">
@@ -92,8 +92,8 @@
           <!-- Commenting -->
           <h3>{% trans "Comments" %}</h3>
           <div id="comments-container">
-            {% get_comment_list for plot as comments %}
-            {% for comment in comments|fill_tree|annotate_tree %}
+            {% get_comment_list for feature as comments %}
+            {% for comment in comments %}
                {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
                {% if not comment.open and not comment.close %}</li>{% endif %}
                {% if comment.open %}<ul>{% endif %}
@@ -134,13 +134,13 @@
         <div class="span4">
           <button
              disabled="disabled"
-             data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
-             data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
+             data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
+             data-disabled-title="{% trans "Editing location is not available to all users" %}"
              data-href="{{ request.get_full_path }}"
              style="display:none"
-             id="edit-plot-location"
-             class="btn">{% trans "Move Tree" %}</button>
-          <button class="btn" style="display:none" id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
+             id="edit-location"
+             class="btn">{% trans "Move Location" %}</button>
+          <button class="btn" style="display:none" id="cancel-edit-location">{% trans "Cancel Tree Move" %}</button>
           <div id="map" class="map-small"></div>
           <div id="street-view" class="street-view-small" style="display: none;"></div>
         </div>
@@ -152,7 +152,7 @@
 
 {% block scripts %}
 <script id="template-comment" type="template/underscore">
-  {% get_comment_form for plot as form %}
+  {% get_comment_form for feature as form %}
   <form action="{% url 'comments-post-comment' %}" class="<%= classname %>" method="post">
     {% csrf_token %}
     {{ form.comment }}
@@ -183,8 +183,9 @@ var mapFeatureOptions = {
     deleteConfirm: '#delete-confirm',
     deleteCancel: '#delete-cancel',
     deleteConfirmationBox: '#delete-confirmation-box',
-    plotId: {{ plot.id }},
+    featureId: {{ feature.id }},
     sidebar: '#sidebar',
+    form: '#plot-form',
     inlineEditForm: {
         form: '#plot-form',
         edit: '#edit-plot',
@@ -199,12 +200,12 @@ var mapFeatureOptions = {
         dataType: 'html',
         imageContainer: '#tree-photo-carousel'
     },
-    plotLocation: {
-        edit: '#edit-plot-location',
-        cancel: '#cancel-edit-plot-location',
-        location: {
-            x: {{ plot.geom.x }},
-            y: {{ plot.geom.y }}
+    location: {
+        edit: '#edit-location',
+        cancel: '#cancel-edit-location',
+        point: {
+            x: {{ feature.geom.x }},
+            y: {{ feature.geom.y }}
         }
     },
     streetView: '#street-view'

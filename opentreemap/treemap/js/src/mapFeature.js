@@ -124,22 +124,22 @@ exports.init = function(options) {
         config: options.config,
         selector: '#map',
         disableScrollWithMouseWheel: true,
-        center: options.plotLocation.location,
+        center: options.location.point,
         zoom: mapManager.ZOOM_PLOT
     });
 
     plotMarker.init(options.config, mapManager.map);
 
     reverseGeocodeStreamAndUpdateAddressesOnForm(
-        options.config, plotMarker.moveStream, '#plot-form');
+        options.config, plotMarker.moveStream, options.form);
 
     var currentPlotMover = plotMover.init({
         mapManager: mapManager,
         plotMarker: plotMarker,
         inlineEditForm: form,
-        editLocationButton: options.plotLocation.edit,
-        cancelEditLocationButton: options.plotLocation.cancel,
-        location: options.plotLocation.location
+        editLocationButton: options.location.edit,
+        cancelEditLocationButton: options.location.cancel,
+        location: options.location.point
     });
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),
@@ -147,7 +147,7 @@ exports.init = function(options) {
         .map('.data.' + options.config.utfGrid.mapfeatureIdKey);
 
     clickedIdStream
-        .filter(BU.not, options.plotId)
+        .filter(BU.not, options.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
         .onValue(_.bind(window.location.assign, window.location));
 
@@ -161,7 +161,7 @@ exports.init = function(options) {
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
             noStreetViewText: options.config.noStreetViewText,
-            location: options.plotLocation.location
+            location: options.location.point
         });
         form.saveOkStream
             .map('.formData')
