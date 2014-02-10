@@ -197,16 +197,6 @@ def create_user(*args, **kwargs):
 def map_feature_popup(request, instance, feature_id):
     feature = _get_map_feature_or_404(feature_id, instance)
     context = _context_dict_for_map_feature(instance, feature)
-
-    if feature.is_plot:
-        tree = feature.current_tree()
-        if tree and tree.species:
-            context['title'] = tree.species
-        else:
-            context['title'] = trans("Missing Species")
-    else:
-        context['title'] = feature.display_name
-
     return context
 
 
@@ -216,16 +206,16 @@ def render_map_feature_detail(request, instance, feature_id):
         template = 'treemap/plot_detail.html'
     else:
         template = 'map_features/%s_detail.html' % feature.feature_type
-    context = _plot_detail(request, instance, feature)
+    context = _map_feature_detail(request, instance, feature)
     return render_to_response(template, context, RequestContext(request))
 
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
-    feature = _get_map_feature_or_404(feature_id, instance)
-    return _plot_detail(request, instance, feature, edit, tree_id)
+    feature = _get_map_feature_or_404(feature_id, instance, 'Plot')
+    return _map_feature_detail(request, instance, feature, edit, tree_id)
 
 
-def _plot_detail(request, instance, feature, edit=False, tree_id=None):
+def _map_feature_detail(request, instance, feature, edit=False, tree_id=None):
     if feature.is_plot:
         if hasattr(request, 'instance_supports_ecobenefits'):
             supports_eco = request.instance_supports_ecobenefits
@@ -257,7 +247,7 @@ def _context_dict_for_map_feature(instance, feature):
         tree = feature.current_tree()
         if tree:
             if tree.species:
-                title = tree.species
+                title = tree.species.common_name
             else:
                 title = trans("Missing Species")
         else:

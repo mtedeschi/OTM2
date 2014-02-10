@@ -54,6 +54,8 @@ urlpatterns = patterns(
         edit_plot_detail_view, name='map_feature_detail_edit'),
     url(r'^features/(?P<feature_id>\d+)/popup$',
         map_feature_popup_view, name='plot_popup'),
+    url(r'^features/(?P<feature_id>\d+)/trees/(?P<tree_id>\d+)/$',
+        route(DELETE=delete_tree_view)),
 
     url(r'^plots/$', route(POST=add_map_feature_view), name='add_plot'),
     url(r'^plots/(?P<feature_id>\d+)/sidebar$',
