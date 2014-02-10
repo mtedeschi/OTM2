@@ -1190,10 +1190,10 @@ index_view = instance_request(index)
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
-get_plot_detail_view = instance_request(
+get_map_feature_detail_view = instance_request(
     render_template('treemap/plot_detail.html', plot_detail))
 
-edit_plot_detail_view = login_required(
+edit_map_feature_detail_view = login_required(
     instance_request(
         creates_instance_user(
             render_template('treemap/plot_detail.html', plot_detail))))
