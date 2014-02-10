@@ -5,6 +5,8 @@
 {% load form_extras %}
 {% load udf %}
 
+{% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
+
 {% block subclass_details %}
 
 <h3>{% trans "Tree Information" %}</h3>
@@ -139,7 +141,6 @@
       var mapFeature = mapFeatureModule.init(mapFeatureOptions);
 
       plot.init({
-          config: config,
           startInEditMode: {% if editmode %}true{% else %}false{% endif %},
           treeIdColumn: '#tree-id-column',
           ecoBenefits: '#ecobenefits',
