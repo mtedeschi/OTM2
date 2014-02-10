@@ -18,7 +18,7 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            add_tree_photo_endpoint, photo_review_endpoint,
                            approve_or_reject_photo_view, next_photo_endpoint,
                            photo_review_partial_endpoint, get_plot_eco_view,
-                           edit_map_feature_detail_view, static_page_view,
+                           edit_plot_detail_view, static_page_view,
                            get_plot_sidebar_view)
 
 # Testing notes:
@@ -51,7 +51,7 @@ urlpatterns = patterns(
     url(r'^features/(?P<type>\w+)/$',
         route(POST=add_map_feature_view), name='add_map_feature'),
     url(r'^features/(?P<feature_id>\d+)/(?P<edit>edit)$',
-        edit_map_feature_detail_view, name='map_feature_detail_edit'),
+        edit_plot_detail_view, name='map_feature_detail_edit'),
     url(r'^features/(?P<feature_id>\d+)/popup$',
         map_feature_popup_view, name='plot_popup'),
 

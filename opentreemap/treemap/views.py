@@ -15,7 +15,7 @@ import sass
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.http import etag
 from django.conf import settings
@@ -25,6 +25,7 @@ from django.utils.translation import ugettext as trans
 from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
+from django.template import RequestContext
 
 from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 require_http_method, string_as_file_call,
@@ -209,9 +210,22 @@ def map_feature_popup(request, instance, feature_id):
     return context
 
 
+def render_map_feature_detail(request, instance, feature_id):
+    feature = _get_map_feature_or_404(feature_id, instance)
+    if feature.is_plot:
+        template = 'treemap/plot_detail.html'
+    else:
+        template = 'map_features/%s_detail.html' % feature.feature_type
+    context = _plot_detail(request, instance, feature)
+    return render_to_response(template, context, RequestContext(request))
+
+
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
     feature = _get_map_feature_or_404(feature_id, instance)
+    return _plot_detail(request, instance, feature, edit, tree_id)
 
+
+def _plot_detail(request, instance, feature, edit=False, tree_id=None):
     if feature.is_plot:
         if hasattr(request, 'instance_supports_ecobenefits'):
             supports_eco = request.instance_supports_ecobenefits
@@ -1207,13 +1221,9 @@ index_view = instance_request(index)
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
-# get_map_feature_detail_view = instance_request(
-#     render_template('treemap/plot_detail.html', plot_detail))
+get_map_feature_detail_view = instance_request(render_map_feature_detail)
 
-get_map_feature_detail_view = instance_request(
-    render_template('map_features/RainGardenLA_detail.html', plot_detail))
-
-edit_map_feature_detail_view = login_required(
+edit_plot_detail_view = login_required(
     instance_request(
         creates_instance_user(
             render_template('treemap/plot_detail.html', plot_detail))))
