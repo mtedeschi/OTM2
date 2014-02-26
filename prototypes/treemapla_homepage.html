@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TreeMapLA | OpenTreeMap Cloud</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- 
+    
+        NOTES
+        *****
+        Just pulling in static CSS files, needs to have an alias of 
+        /opentreemap/treemap/static/ here for that to work.
+    
+    -->
+    <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrapper">
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+          <ul class="nav pull-left">
+              <li class="add-menu dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
+                  <ul class="dropdown-menu">
+                      <li><a>Add a Tree</a></li>
+                      <li><a>Add a Resource</a></li>
+                  </ul>
+              </li>
+              <li><a>Explore Trees</a></li>
+              <li><a>View Edits</a></li>
+          </ul>
+          <ul class="nav pull-right">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
+                  <ul class="dropdown-menu">
+                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
+                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
+                  </ul>
+              </li>
+              <li><a>My Account</a></li>
+              <li class="user-img">
+                <a><img src="static/img/profile.png"></a>
+              </li>
+          </ul>
+        </div>
+    </div>
+
+    <!-- NEW! User Dock, showing quick information about "My Profile" -->
+    <div class="user-dock">
+        <div class="row-fluid">
+            <div class="span1">
+                <a><img src="static/img/profile.png" class="user-img"></a>
+            </div>
+            <div class="span3">
+                <h2>administrator</h2>
+                <h4>Administrative User</h4>
+                <a class="btn btn-primary">Edit Profile</a>
+                <a class="btn">Logout</a>
+            </div>
+            <div class="span4">
+                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
+                <ul>
+                    <li><a>testmap</a> <span>Owner</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                </ul>
+            </div>
+            <div class="span4">
+                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
+                <ul>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+        <div class="logo">
+          <a href=""><img id="site-logo" src="static/img/logo-beta.png" alt="OpenTreeMap"></a>
+        </div>
+        <div class="search-wrapper">
+            <div class="search-block-wrapper">
+
+                <!--Species Search-->
+                <div class="search-block visible-desktop">
+                    <h3>Search by Species</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
+                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+                    </div>
+                </div>
+            
+                <!-- Location Search -->
+                <div class="search-block">
+                    <h3>Search by Location</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
+                        <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+                    </div>
+                </div>
+            </div>
+            <div class="search-options">
+                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
+                <div class="btn-group">
+                    <button id="search-advanced" class="btn">Advanced</button>
+                    <button id="search-reset" class="btn">Reset</button>
+                </div>
+            </div>
+            
+            <!-- Advanced Search -->
+            <div id="advanced-search-pane" style="display: none;">
+                <div id="standard-search"></div>
+                <div id="missing-search"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subheader with Counts -->
+    <div class="subhead hidden">
+        <div style="display: inline;" id="tree-and-planting-site-counts">
+            <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
+        </div>
+        <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
+        <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
+    </div>   
+ 
+    <!-- Background Image for Interior Pages -->
+    <div class="image-background hidden"></div>
+    <div class="content">
+        <div class="homepage-container" style="padding: 40px 0;background: url(https://s3.amazonaws.com/otmstatic/treemapla/background.jpg) no-repeat; background-size: cover;">
+            <div class="container">
+                <div class="row">
+                    <style>
+                        .homepage-links li {
+                        	list-style: none;
+                            margin-top: 50px;
+                        }
+                        .homepage-links li a {
+                        	background: white;
+                        	position: relative;
+                        	text-indent: 30px;
+                        	width: auto;
+                        	padding: 7px 20px 8px 10px;
+                        	margin-bottom: 40px;
+                        	float: left;
+                        	clear: left;
+                        	font-size: 21px;
+                        	font-weight: 700;
+                        	text-transform: uppercase;
+                        	color: #0673b7;
+                        	margin-left: 15px;
+                        	box-shadow: 0 2px 6px #333;
+                        	box-shadow: 0 2px 6px rgba(0,0,0,.35);
+                        }
+                        .homepage-links li a:hover {
+                        	text-decoration: none;
+                            color: #f7992e;
+                        	box-shadow: 0 2px 6px black;
+                        	box-shadow: 0 2px 6px rgba(0,0,0,.75);
+                        }
+                        .homepage-links li img {
+                        	position: absolute;
+                        	left: -46px;
+                        	z-index: 9;
+                        	top: -20px;
+                        }
+                    </style>
+                    <div class="span4 offset2 homepage-image">
+                        <img src="https://s3.amazonaws.com/otmstatic/treemapla/homepage-main.png" alt="See how Trees + Water Add Up" />
+                    </div>
+                    <div class="span4 homepage-links">
+                        <ul>
+                            <li><a href="#"><img src="https://s3.amazonaws.com/otmstatic/treemapla/homepage-explore.png" alt="Explore the Map" />Explore the Map</a></li>
+                            <li><a href="#"><img src="https://s3.amazonaws.com/otmstatic/treemapla/homepage-add.png" alt="Add a Tree" />Add a Tree</a></li>
+                            <li><a href="#"><img src="https://s3.amazonaws.com/otmstatic/treemapla/homepage-rain.png" alt="Rainwater Harvesting" />Rainwater Harvesting</a></li>
+                            <li><a href="#"><img src="https://s3.amazonaws.com/otmstatic/treemapla/homepage-info.png" alt="How to Use TreeMapLA" />How to Use TreeMapLA</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <style>
+                        .homepage-media-feeds {
+                        	width: 890px;
+                        	min-height: 370px;
+                        	height: auto;
+                        	margin: 35px auto 25px;
+                        	background: white;
+                        	padding: 25px 20px 25px 25px;
+                        	box-shadow: 0 2px 6px black;
+                        	box-shadow: 0 2px 6px rgba(0,0,0,.35);
+                        	position: relative;
+                        }
+                        .homepage-media-feeds h3 {
+                        	font-size: 21px;
+                        	font-weight: 700;
+                        	text-transform: uppercase;
+                        	color: #0673b7;
+                        	margin-bottom: 20px;
+                        }
+                        .homepage-media-feeds .fb-like-box {
+                        	position: absolute;
+                        	top: 20px;
+                        	right: 25px;
+                        }
+                        .homepage-media-feeds #twitter-feed {
+                        	margin-bottom: 20px;
+                        	width: 66%;
+                        }
+                        .homepage-media-feeds #twitter-feed ul {
+                            margin: 0 0 10px;
+                        }
+                        .homepage-media-feeds #twitter-feed li {
+                        	list-style: none;
+                        	float: left;
+                        	width: 45%;
+                        	margin-right: 5%;
+                        	min-height: 105px;
+                        }
+                        .homepage-media-feeds #twitter-feed a {
+                        	color: #0673b7;
+                        }
+                        .homepage-media-feeds #twitter-feed .user span {
+                        	font-weight: 700;
+                        	margin-bottom: 6px;
+                        	display: none;
+                        }
+                        .homepage-media-feeds #twitter-feed .user img {
+                        	float: left;
+                        	margin-right: 8px;
+                        }
+                        .homepage-media-feeds #twitter-feed .tweet {
+                        	padding-left: 56px;
+                            font-size: 1.2rem;
+                            line-height: 1.6rem;
+                        }
+                        .homepage-media-feeds #twitter-feed .timePosted {
+                        	padding-left: 56px;
+                            font-size: 1.2rem;
+                            line-height: 1.6rem;
+                        	margin-top: 6px;
+                        	color: #AAA;
+                        	font-style: italic;
+                        }
+                    </style>
+                    <div class="homepage-media-feeds">
+                        <h3>Social Media</h3>
+                        <div class="fb-like-box" data-href="https://www.facebook.com/TreeMapLA" data-width="290" data-height="370" data-show-faces="false" data-header="false" data-stream="true" data-show-border="false"></div>
+                        <div id="twitter-feed"></div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <script>
+                        /*********************************************************************
+                        *  #### Twitter Post Fetcher v10.0 ####
+                        *  Coded by Jason Mayes 2013. A present to all the developers out there.
+                        *  www.jasonmayes.com
+                        *  Please keep this disclaimer with my code if you use it. Thanks. :-)
+                        *  Got feedback or questions, ask here:
+                        *  http://www.jasonmayes.com/projects/twitterApi/
+                        *  Updates will be posted to this site.
+                        *********************************************************************/
+                        var twitterFetcher=function(){function x(e){return e.replace(/<b[^>]*>(.*?)<\/b>/gi,function(c,e){return e}).replace(/class=".*?"|data-query-source=".*?"|dir=".*?"|rel=".*?"/gi,"")}function p(e,c){for(var g=[],f=RegExp("(^| )"+c+"( |$)"),a=e.getElementsByTagName("*"),h=0,d=a.length;h<d;h++)f.test(a[h].className)&&g.push(a[h]);return g}var y="",l=20,s=!0,k=[],t=!1,q=!0,r=!0,u=null,v=!0,z=!0,w=null,A=!0;return{fetch:function(e,c,g,f,a,h,d,b,m,n){void 0===g&&(g=20);void 0===f&&(s=!0);void 0===a&&(a=
+                        !0);void 0===h&&(h=!0);void 0===d&&(d="default");void 0===b&&(b=!0);void 0===m&&(m=null);void 0===n&&(n=!0);t?k.push({id:e,domId:c,maxTweets:g,enableLinks:f,showUser:a,showTime:h,dateFunction:d,showRt:b,customCallback:m,showInteraction:n}):(t=!0,y=c,l=g,s=f,r=a,q=h,z=b,u=d,w=m,A=n,c=document.createElement("script"),c.type="text/javascript",c.src="//cdn.syndication.twimg.com/widgets/timelines/"+e+"?&lang=en&callback=twitterFetcher.callback&suppress_response_codes=true&rnd="+Math.random(),document.getElementsByTagName("head")[0].appendChild(c))},
+                        callback:function(e){var c=document.createElement("div");c.innerHTML=e.body;"undefined"===typeof c.getElementsByClassName&&(v=!1);e=[];var g=[],f=[],a=[],h=[],d=0;if(v)for(c=c.getElementsByClassName("tweet");d<c.length;){0<c[d].getElementsByClassName("retweet-credit").length?a.push(!0):a.push(!1);if(!a[d]||a[d]&&z)e.push(c[d].getElementsByClassName("e-entry-title")[0]),h.push(c[d].getAttribute("data-tweet-id")),g.push(c[d].getElementsByClassName("p-author")[0]),f.push(c[d].getElementsByClassName("dt-updated")[0]);
+                        d++}else for(c=p(c,"tweet");d<c.length;)e.push(p(c[d],"e-entry-title")[0]),h.push(c[d].getAttribute("data-tweet-id")),g.push(p(c[d],"p-author")[0]),f.push(p(c[d],"dt-updated")[0]),0<p(c[d],"retweet-credit").length?a.push(!0):a.push(!1),d++;e.length>l&&(e.splice(l,e.length-l),g.splice(l,g.length-l),f.splice(l,f.length-l),a.splice(l,a.length-l));c=[];d=e.length;for(a=0;a<d;){if("string"!==typeof u){var b=new Date(f[a].getAttribute("datetime").replace(/-/g,"/").replace("T"," ").split("+")[0]),b=u(b);
+                        f[a].setAttribute("aria-label",b);if(e[a].innerText)if(v)f[a].innerText=b;else{var m=document.createElement("p"),n=document.createTextNode(b);m.appendChild(n);m.setAttribute("aria-label",b);f[a]=m}else f[a].textContent=b}b="";s?(r&&(b+='<div class="user">'+x(g[a].innerHTML)+"</div>"),b+='<p class="tweet">'+x(e[a].innerHTML)+"</p>",q&&(b+='<p class="timePosted">'+f[a].getAttribute("aria-label")+"</p>")):e[a].innerText?(r&&(b+='<p class="user">'+g[a].innerText+"</p>"),b+='<p class="tweet">'+e[a].innerText+
+                        "</p>",q&&(b+='<p class="timePosted">'+f[a].innerText+"</p>")):(r&&(b+='<p class="user">'+g[a].textContent+"</p>"),b+='<p class="tweet">'+e[a].textContent+"</p>",q&&(b+='<p class="timePosted">'+f[a].textContent+"</p>"));A&&(b+='<p class="interact"><a href="https://twitter.com/intent/tweet?in_reply_to='+h[a]+'" class="twitter_reply_icon">Reply</a><a href="https://twitter.com/intent/retweet?tweet_id='+h[a]+'" class="twitter_retweet_icon">Retweet</a><a href="https://twitter.com/intent/favorite?tweet_id='+
+                        h[a]+'" class="twitter_fav_icon">Favorite</a></p>');c.push(b);a++}if(null==w){e=c.length;g=0;f=document.getElementById(y);for(h="<ul>";g<e;)h+="<li>"+c[g]+"</li>",g++;f.innerHTML=h+"</ul>"}else w(c);t=!1;0<k.length&&(twitterFetcher.fetch(k[0].id,k[0].domId,k[0].maxTweets,k[0].enableLinks,k[0].showUser,k[0].showTime,k[0].dateFunction,k[0].showRt,k[0].customCallback,k[0].showInteraction),k.splice(0,1))}}}();
+        
+                        twitterFetcher.fetch('382503110364504064', '', 6, true, true, true, '', false, handleTweets, false);
+        
+                        function handleTweets(tweets){
+                                var x = tweets.length;
+                                var n = 0;
+                                var element = document.getElementById('twitter-feed');
+                                var html = '<ul>';
+                                while(n < x) {
+                                  html += '<li>' + tweets[n] + '</li>';
+                                  n++;
+                                }
+                                html += '</ul>';
+                                element.innerHTML = html;
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <ul class="inline pull-left">
+            <li><a>Tree Key</a></li>
+            <li><a>Resources</a></li>
+            <li><a>FAQ</a></li>
+            <li><a>About</a></li>
+            <li><a>Contact</a></li>
+        </ul>
+        <a href="javascript:;" class="pull-right partners">Partners</a>
+    </div>
+</footer>
+    
+<!-- 
+
+    NOTES
+    *****
+    This is just placeholder to show interactivity.
+    Hopefully it just helps give a sense of how things should work.
+
+-->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+    // Just adds dropdowns to navbar, user-dock
+    $('.dropdown-toggle').dropdown();
+    $('.user-img').on('click', function() {
+        $('.user-dock').toggleClass('active');
+    });
+</script>
+</body>
+</html>
