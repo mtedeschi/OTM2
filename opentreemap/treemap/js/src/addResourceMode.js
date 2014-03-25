@@ -23,7 +23,8 @@ function init(options) {
         $summaryHead = U.$find('.summaryHead', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar),
         mapManager = options.mapManager,
-        plotMarker = options.plotMarker;
+        plotMarker = options.plotMarker,
+        roofPolygon = null;
 
     manager = addMapFeature.init(options);
 
@@ -76,19 +77,25 @@ function init(options) {
     manager.stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
         if (stepNumber === STEP_ROOF_GEOMETRY) {
             plotMarker.disableMoving();
-            var p1 = plotMarker.getLatLng(),
-                p2 = U.offsetLatLngByMeters(p1, -20, -20),
-                coords = [
-                    [p1.lat, p1.lng],
-                    [p2.lat, p1.lng],
-                    [p2.lat, p2.lng],
-                    [p1.lat, p2.lng],
-                    [p1.lat, p1.lng]
-                ],
-                roofPolygon = L.Polyline.PolylineEditor(coords, {maxMarkers: 100}).addTo(mapManager.map);
-            $form.show();
+            if (!roofPolygon) {
+                initRoofPolygon();
+            }
         }
     });
+
+    function initRoofPolygon() {
+        var p1 = plotMarker.getLatLng(),
+            p2 = U.offsetLatLngByMeters(p1, -20, -20),
+            coords = [
+                [p1.lat, p1.lng],
+                [p2.lat, p1.lng],
+                [p2.lat, p2.lng],
+                [p1.lat, p2.lng],
+                [p1.lat, p1.lng]
+            ];
+        roofPolygon = L.Polyline.PolylineEditor(coords, {maxMarkers: 100}).addTo(mapManager.map);
+        roofPolygon.addTo(mapManager.map);
+    }
 
     function onQuestionAnswered(e) {
         var $radioButton = $(e.target),
