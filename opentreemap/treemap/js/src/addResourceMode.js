@@ -2,14 +2,18 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
     U = require('treemap/utility'),
     addMapFeature = require('treemap/addMapFeature');
+
+require('leafletEditablePolyline');
 
 var manager,
     STEP_CHOOSE_TYPE = 0,
     STEP_LOCATE = 1,
-    STEP_DETAILS = 2,
-    STEP_FINAL = 3;
+    STEP_ROOF_GEOMETRY = 2,
+    STEP_DETAILS = 3,
+    STEP_FINAL = 4;
 
 function init(options) {
     var config = options.config,
@@ -17,7 +21,9 @@ function init(options) {
         $resourceType = U.$find('input[name="addResourceType"]', $sidebar),
         $form = U.$find(options.formSelector, $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
-        $summarySubhead = U.$find('.summarySubhead', $sidebar);
+        $summarySubhead = U.$find('.summarySubhead', $sidebar),
+        mapManager = options.mapManager,
+        plotMarker = options.plotMarker;
 
     manager = addMapFeature.init(options);
 
@@ -33,6 +39,7 @@ function init(options) {
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
             manager.stepControls.enableNext(STEP_CHOOSE_TYPE, true);
+            manager.stepControls.enableNext(STEP_ROOF_GEOMETRY, true);
             manager.stepControls.enableNext(STEP_DETAILS, false);
             $summaryHead.text(typeName);
             $summarySubhead.text("Resource");
@@ -65,6 +72,23 @@ function init(options) {
     function hideSubquestions() {
         U.$find('.resource-subquestion', $form).hide();
     }
+
+    manager.stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
+        if (stepNumber === STEP_ROOF_GEOMETRY) {
+            plotMarker.disableMoving();
+            var p1 = plotMarker.getLatLng(),
+                p2 = U.offsetLatLngByMeters(p1, -20, -20),
+                coords = [
+                    [p1.lat, p1.lng],
+                    [p2.lat, p1.lng],
+                    [p2.lat, p2.lng],
+                    [p1.lat, p2.lng],
+                    [p1.lat, p1.lng]
+                ],
+                roofPolygon = L.Polyline.PolylineEditor(coords, {maxMarkers: 100}).addTo(mapManager.map);
+            $form.show();
+        }
+    });
 
     function onQuestionAnswered(e) {
         var $radioButton = $(e.target),

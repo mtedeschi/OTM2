@@ -116,9 +116,12 @@ exports = module.exports = {
 
     // Return current marker location
     getLocation: function () {
-        var latlng = marker ? marker.getLatLng() : lastMarkerLocation;
-
+        var latlng = exports.getLatLng();
         return U.lonLatToWebMercator(latlng.lng, latlng.lat);
+    },
+
+    getLatLng: function () {
+        return marker ? marker.getLatLng() : lastMarkerLocation;
     },
 
     // Returns "True" if user dragged the marker; false otherwise
