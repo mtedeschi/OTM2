@@ -124,6 +124,11 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { leaflet: 'L' }
                         },
+                        leafletEditablePolyline: {
+                            path: './treemap/js/shim/Leaflet.Editable.Polyline.js',
+                            exports: null,
+                            depends: { leaflet: 'L' }
+                        },
                         bloodhound: {
                             path: './treemap/js/shim/bloodhound.js',
                             exports: 'Bloodhound',
