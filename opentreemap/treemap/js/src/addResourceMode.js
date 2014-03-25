@@ -18,6 +18,7 @@ var manager,
 function init(options) {
     var config = options.config,
         $sidebar = $(options.sidebar),
+        $footerStepCounts = U.$find('.footer-total-steps', $sidebar),
         $resourceType = U.$find('input[name="addResourceType"]', $sidebar),
         $form = U.$find(options.formSelector, $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
@@ -34,10 +35,14 @@ function init(options) {
     manager.deactivateStream.onValue(initSteps);
 
     function onResourceTypeChosen() {
-        var type = $resourceType.filter(':checked').val(),
-            typeName = $resourceType.filter(':checked').next().text().trim(),
+        var $option = $resourceType.filter(':checked'),
+            type = $option.val(),
+            typeName = $option.next().text().trim(),
+            areaFieldName = $option.data('area-field-name'),
             addFeatureUrl = config.instance.url + 'features/' + type + '/';
         if (type) {
+            var hasRoofGeometryStep = !!areaFieldName;
+            initRoofGeometryStep(hasRoofGeometryStep);
             manager.setAddFeatureUrl(addFeatureUrl);
             manager.stepControls.enableNext(STEP_CHOOSE_TYPE, true);
             manager.stepControls.enableNext(STEP_ROOF_GEOMETRY, true);
@@ -51,6 +56,17 @@ function init(options) {
                 success: onResourceFormLoaded
             });
         }
+    }
+
+    function initRoofGeometryStep(hasRoofGeometryStep) {
+        var stepCount = manager.stepControls.maxStepNumber + 1;
+        if (!hasRoofGeometryStep) {
+            stepCount--;
+        }
+        $footerStepCounts.each(function () {
+            $(this).text(stepCount);
+        });
+        manager.stepControls.activateStep(STEP_ROOF_GEOMETRY, hasRoofGeometryStep);
     }
 
     function onResourceFormLoaded(html) {
